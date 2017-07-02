@@ -5,7 +5,7 @@
 * Added opacity as a constructor option
 * fixed two digits badges not fitting in favicon
 
-####Recommendation when using this library is to
+#### Recommendation when using this library is to
 * cap digits to two when using upper left position
 * use update cycle time 3 seconds or more to not fill queue with animation
  

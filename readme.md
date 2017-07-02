@@ -1,7 +1,7 @@
 [![volkswagen status](https://auchenberg.github.io/volkswagen/volkswargen_ci.svg?v=1)](https://github.com/auchenberg/volkswagen)
 # favico.js
 
-## Forked to businesstek July 2, 2017
+## Forked to businesstek
 * Added opacity as a constructor option
 * fixed two digits badges not fitting in favicon
 

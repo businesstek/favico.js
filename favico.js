@@ -1,9 +1,14 @@
 /**
- * @license MIT or GPL-2.0
+ * @license MIT
  * @fileOverview Favico animations
  * @author Miroslav Magda, http://blog.ejci.net
- * @source: https://github.com/ejci/favico.js
  * @version 0.3.10
+ * forked to businesstek
+ * Added opacity as a constructor option
+ * fixed two digits badges not fitting in favicon
+ * Recommendation when using this library is to
+ * 1. cap digits to two when using upper left position
+ * 2. use update cycle time 3 seconds or more to not fill queue with animation
  */
 
 /**
@@ -16,13 +21,11 @@
  *    textColor : '#fff',
  *    fontFamily : 'sans-serif',
  *    fontStyle : 'bold',
- *    type : 'circle',
  *    position : 'down',
+ *    type : 'circle',
  *    animation : 'slide',
- *    elementId: false,
- *    element: null,
  *    dataUrl: function(url){},
- *    win: window
+ *    win: top
  * });
  */
 (function () {
@@ -36,11 +39,11 @@
 			fontFamily: 'sans-serif', //Arial,Verdana,Times New Roman,serif,sans-serif,...
 			fontStyle: 'bold', //normal,italic,oblique,bold,bolder,lighter,100,200,300,400,500,600,700,800,900
 			type: 'circle',
-			position: 'down', // down, up, left, leftup (upleft)
+			position: 'leftup', // down, up, left, leftup (upleft)
 			animation: 'slide',
 			elementId: false,
-			element: null,
 			dataUrl: false,
+			opacity: 0.8,
 			win: window
 		};
 		var _opt, _orig, _h, _w, _canvas, _context, _img, _ready, _lastBadge, _running, _readyCb, _stop, _browser, _animTimeout, _drawTimeout, _doc;
@@ -73,41 +76,38 @@
 			var isUp = _opt.position.indexOf('up') > -1;
 			var isLeft = _opt.position.indexOf('left') > -1;
 
-			//transform the animations
+			//transform animation
 			if (isUp || isLeft) {
-				for (var a in animation.types) {
-					for (var i = 0; i < animation.types[a].length; i++) {
-						var step = animation.types[a][i];
+				for (var i = 0; i < animation.types['' + _opt.animation].length; i++) {
+					var step = animation.types['' + _opt.animation][i];
 
-						if (isUp) {
-							if (step.y < 0.6) {
-								step.y = step.y - 0.4;
-							} else {
-								step.y = step.y - 2 * step.y + (1 - step.w);
-							}
+					if (isUp) {
+						if (step.y < 0.6) {
+							step.y = step.y - 0.4;
+						} else {
+							step.y = step.y - 2 * step.y + (1 - step.w);
 						}
-
-						if (isLeft) {
-							if (step.x < 0.6) {
-								step.x = step.x - 0.4;
-							} else {
-								step.x = step.x - 2 * step.x + (1 - step.h);
-							}
-						}
-
-						animation.types[a][i] = step;
 					}
+
+					if (isLeft) {
+						if (step.x < 0.6) {
+							step.x = step.x - 0.4;
+						} else {
+							step.x = step.x - 2 * step.x + (1 - step.h);
+						}
+					}
+
+					animation.types['' + _opt.animation][i] = step;
 				}
 			}
 			_opt.type = (type['' + _opt.type]) ? _opt.type : _def.type;
 
-			_orig = link. getIcons();
+			_orig = link.getIcon();
 			//create temp canvas
 			_canvas = document.createElement('canvas');
 			//create temp image
 			_img = document.createElement('img');
-			var lastIcon = _orig[_orig.length - 1];
-			if (lastIcon.hasAttribute('href')) {
+			if (_orig.hasAttribute('href')) {
 				_img.setAttribute('crossOrigin', 'anonymous');
 				//get width/height
 				_img.onload = function () {
@@ -118,16 +118,19 @@
 					_context = _canvas.getContext('2d');
 					icon.ready();
 				};
-				_img.setAttribute('src', lastIcon.getAttribute('href'));
+				_img.setAttribute('src', _orig.getAttribute('href'));
 			} else {
-				_h = 32;
-				_w = 32;
-				_img.height = _h;
-				_img.width = _w;
-				_canvas.height = _h;
-				_canvas.width = _w;
-				_context = _canvas.getContext('2d');
-				icon.ready();
+				_img.onload = function () {
+					_h = 32;
+					_w = 32;
+					_img.height = _h;
+					_img.width = _w;
+					_canvas.height = _h;
+					_canvas.width = _w;
+					_context = _canvas.getContext('2d');
+					icon.ready();
+				};
+				_img.setAttribute('src', '');
 			}
 
 		};
@@ -224,7 +227,7 @@
 			opt = options(opt);
 			var more = false;
 			if (opt.len === 2) {
-				opt.x = opt.x - opt.w * 0.4;
+				opt.x = opt.x - opt.w * 0.1;//was 0.4 and cut off numbers
 				opt.w = opt.w * 1.4;
 				more = true;
 			} else if (opt.len >= 3) {
@@ -250,12 +253,12 @@
 			} else {
 				_context.arc(opt.x + opt.w / 2, opt.y + opt.h / 2, opt.h / 2, 0, 2 * Math.PI);
 			}
-			_context.fillStyle = 'rgba(' + _opt.bgColor.r + ',' + _opt.bgColor.g + ',' + _opt.bgColor.b + ',' + opt.o + ')';
+			_context.fillStyle = 'rgba(' + _opt.bgColor.r + ',' + _opt.bgColor.g + ',' + _opt.bgColor.b + ',' + _opt.opacity + ')';
 			_context.fill();
 			_context.closePath();
 			_context.beginPath();
 			_context.stroke();
-			_context.fillStyle = 'rgba(' + _opt.textColor.r + ',' + _opt.textColor.g + ',' + _opt.textColor.b + ',' + opt.o + ')';
+			_context.fillStyle = 'rgba(' + _opt.textColor.r + ',' + _opt.textColor.g + ',' + _opt.textColor.b + ',' + _opt.opacity + ')';
 			//_context.fillText((more) ? '9+' : opt.n, Math.floor(opt.x + opt.w / 2), Math.floor(opt.y + opt.h - opt.h * 0.15));
 			if ((typeof opt.n) === 'number' && opt.n > 999) {
 				_context.fillText(((opt.n > 9999) ? 9 : Math.floor(opt.n / 1000)) + 'k+', Math.floor(opt.x + opt.w / 2), Math.floor(opt.y + opt.h - opt.h * 0.2));
@@ -272,7 +275,7 @@
 			opt = options(opt);
 			var more = false;
 			if (opt.len === 2) {
-				opt.x = opt.x - opt.w * 0.4;
+				opt.x = opt.x - opt.w * 0.1;//was 0.4 and cut off numbers
 				opt.w = opt.w * 1.4;
 				more = true;
 			} else if (opt.len >= 3) {
@@ -285,9 +288,9 @@
 			_context.beginPath();
 			_context.font = _opt.fontStyle + " " + Math.floor(opt.h * (opt.n > 99 ? 0.9 : 1)) + "px " + _opt.fontFamily;
 			_context.textAlign = 'center';
-			_context.fillStyle = 'rgba(' + _opt.bgColor.r + ',' + _opt.bgColor.g + ',' + _opt.bgColor.b + ',' + opt.o + ')';
+			_context.fillStyle = 'rgba(' + _opt.bgColor.r + ',' + _opt.bgColor.g + ',' + _opt.bgColor.b + ',' + _opt.opacity + ')';
 			_context.fillRect(opt.x, opt.y, opt.w, opt.h);
-			_context.fillStyle = 'rgba(' + _opt.textColor.r + ',' + _opt.textColor.g + ',' + _opt.textColor.b + ',' + opt.o + ')';
+			_context.fillStyle = 'rgba(' + _opt.textColor.r + ',' + _opt.textColor.g + ',' + _opt.textColor.b + ',' + _opt.opacity + ')';
 			//_context.fillText((more) ? '9+' : opt.n, Math.floor(opt.x + opt.w / 2), Math.floor(opt.y + opt.h - opt.h * 0.15));
 			if ((typeof opt.n) === 'number' && opt.n > 999) {
 				_context.fillText(((opt.n > 9999) ? 9 : Math.floor(opt.n / 1000)) + 'k+', Math.floor(opt.x + opt.w / 2), Math.floor(opt.y + opt.h - opt.h * 0.2));
@@ -352,8 +355,8 @@
 		var image = function (imageElement) {
 			_readyCb = function () {
 				try {
-					var w = imageElement.width;
-					var h = imageElement.height;
+					var w = imageElement.getAttribute('width');
+					var h = imageElement.getAttribute('height');
 					var newImg = document.createElement('img');
 					var ratio = (w / _w < h / _h) ? (w / _w) : (h / _h);
 					newImg.setAttribute('crossOrigin', 'anonymous');
@@ -362,23 +365,16 @@
 						_context.drawImage(newImg, 0, 0, _w, _h);
 						link.setIcon(_canvas);
 					};
+					if(imageElement.getAttribute('src')){
 					newImg.setAttribute('src', imageElement.getAttribute('src'));
+				}else{
+					newImg.setAttribute('src', imageElement.getAttribute('href'));
+				}
 					newImg.height = (h / ratio);
 					newImg.width = (w / ratio);
 				} catch (e) {
 					throw new Error('Error setting image. Message: ' + e.message);
 				}
-			};
-			if (_ready) {
-				_readyCb();
-			}
-		};
-		/**
-		 * Set the icon from a source url. Won't work with badges.
-		 */
-		var rawImageSrc = function (url) {
-			_readyCb = function() {
-				link.setIconSrc(url);
 			};
 			if (_ready) {
 				_readyCb();
@@ -456,26 +452,6 @@
 
 		};
 
-		var setOpt = function (key, value) {
-			var opts = key;
-			if (!(value == null && Object.prototype.toString.call(key) == '[object Object]')) {
-				opts = {};
-				opts[key] = value;
-			}
-
-			var keys = Object.keys(opts);
-			for (var i = 0; i < keys.length; i++) {
-				if (keys[i] == 'bgColor' || keys[i] == 'textColor') {
-					_opt[keys[i]] = hexToRgb(opts[keys[i]]);
-				} else {
-					_opt[keys[i]] = opts[keys[i]];
-				}
-			}
-
-			_queue.push(_lastBadge);
-			icon.start();
-		};
-
 		/**
 		 * Draw video to context and repeat :)
 		 */
@@ -498,46 +474,40 @@
 
 		var link = {};
 		/**
-		 * Get icons from HEAD tag or create a new <link> element
+		 * Get icon from HEAD tag or create a new <link> element
 		 */
-		link.getIcons = function () {
-			var elms = [];
+		link.getIcon = function () {
+			var elm = false;
 			//get link element
-			var getLinks = function () {
-				var icons = [];
-				var links = _doc.getElementsByTagName('head')[0].getElementsByTagName('link');
-				for (var i = 0; i < links.length; i++) {
-					if ((/(^|\s)icon(\s|$)/i).test(links[i].getAttribute('rel'))) {
-						icons.push(links[i]);
+			var getLink = function () {
+				var link = _doc.getElementsByTagName('head')[0].getElementsByTagName('link');
+				for (var l = link.length, i = (l - 1); i >= 0; i--) {
+					if ((/(^|\s)icon(\s|$)/i).test(link[i].getAttribute('rel'))) {
+						return link[i];
 					}
 				}
-				return icons;
+				return false;
 			};
 			if (_opt.element) {
-				elms = [_opt.element];
+				elm = _opt.element;
 			} else if (_opt.elementId) {
 				//if img element identified by elementId
-				elms = [_doc.getElementById(_opt.elementId)];
-				elms[0].setAttribute('href', elms[0].getAttribute('src'));
+				elm = _doc.getElementById(_opt.elementId);
+				elm.setAttribute('href', elm.getAttribute('src'));
 			} else {
 				//if link element
-				elms = getLinks();
-				if (elms.length === 0) {
-					elms = [_doc.createElement('link')];
-					elms[0].setAttribute('rel', 'icon');
-					_doc.getElementsByTagName('head')[0].appendChild(elms[0]);
+				elm = getLink();
+				if (elm === false) {
+					elm = _doc.createElement('link');
+					elm.setAttribute('rel', 'icon');
+					_doc.getElementsByTagName('head')[0].appendChild(elm);
 				}
 			}
-			elms.forEach(function(item) {
-				item.setAttribute('type', 'image/png');
-			});
-			return elms;
+			elm.setAttribute('type', 'image/png');
+			return elm;
 		};
 		link.setIcon = function (canvas) {
 			var url = canvas.toDataURL('image/png');
-			link.setIconSrc(url);
-		};
-		link.setIconSrc = function (url) {
 			if (_opt.dataUrl) {
 				//if using custom exporter
 				_opt.dataUrl(url);
@@ -555,24 +525,21 @@
 				if (_browser.ff || _browser.opera) {
 					//for FF we need to "recreate" element, atach to dom and remove old <link>
 					//var originalType = _orig.getAttribute('rel');
-					var old = _orig[_orig.length - 1];
-					var newIcon = _doc.createElement('link');
-					_orig = [newIcon];
+					var old = _orig;
+					_orig = _doc.createElement('link');
 					//_orig.setAttribute('rel', originalType);
 					if (_browser.opera) {
-						newIcon.setAttribute('rel', 'icon');
+						_orig.setAttribute('rel', 'icon');
 					}
-					newIcon.setAttribute('rel', 'icon');
-					newIcon.setAttribute('type', 'image/png');
-					_doc.getElementsByTagName('head')[0].appendChild(newIcon);
-					newIcon.setAttribute('href', url);
+					_orig.setAttribute('rel', 'icon');
+					_orig.setAttribute('type', 'image/png');
+					_doc.getElementsByTagName('head')[0].appendChild(_orig);
+					_orig.setAttribute('href', url);
 					if (old.parentNode) {
 						old.parentNode.removeChild(old);
 					}
 				} else {
-					_orig.forEach(function(icon) {
-						icon.setAttribute('href', url);
-					});
+					_orig.setAttribute('href', url);
 				}
 			}
 		};
@@ -875,9 +842,7 @@
 			badge: badge,
 			video: video,
 			image: image,
-			rawImageSrc: rawImageSrc,
 			webcam: webcam,
-			setOpt: setOpt,
 			reset: icon.reset,
 			browser: {
 				supported: _browser.supported

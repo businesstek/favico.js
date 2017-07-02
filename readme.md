@@ -1,5 +1,16 @@
 [![volkswagen status](https://auchenberg.github.io/volkswagen/volkswargen_ci.svg?v=1)](https://github.com/auchenberg/volkswagen)
 # favico.js
+
+## Forked to businesstek July 2, 2017
+* Added opacity as a constructor option
+* fixed two digits badges not fitting in favicon
+
+####Recommendation when using this library is to
+* cap digits to two when using upper left position
+* use update cycle time 3 seconds or more to not fill queue with animation
+ 
+
+
 More info [here](http://lab.ejci.net/favico.js/).
 
 

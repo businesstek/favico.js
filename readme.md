@@ -7,7 +7,10 @@
 
 #### Recommendation when using this library is to
 * cap digits to two when using upper left position
-* use update cycle time 3 seconds or more to not fill queue with animation
+* use update cycle time 5 seconds or more to not fill queue with animation
+
+#### Sample index.html file shows works with embedded favicon as base64
+Note there is a bug in animations upper left position.  When tab is not focused the badge is positioned lower right with no animations.
  
 
 
